@@ -193,7 +193,7 @@ def aes_decrypt(text, password, use_salt=True):
             return Fernet(fernet_key).decrypt(text.encode()).decode()
     except InvalidToken:
         return None
-    
+
 
 """this function encrypts text using the ROT13 cipher.
 @param text: The plaintext that needs to be encrypted.
@@ -271,7 +271,8 @@ def read_file():
         if path.lower()=='cancel': return None
         try:
             with open(path,'r',encoding='utf-8') as f: return f.read()
-        except Exception as e: print(f" {e}")
+        except Exception as e:
+            print(f" {e}")
 
 
 
@@ -281,7 +282,7 @@ def write_file(content, default="output.txt"):
     @param default: The default filename to use if the user does not specify one.
     @return: None
     """
-    path=input(f"Output file (default: {default}): ").strip() or default
+    path=input(f"Name Your File (default: {default}): ").strip() or default
     try:
         with open(path,'w',encoding='utf-8') as f: f.write(content)
         print(f" Saved to {path}")
@@ -309,9 +310,9 @@ def batch_process(messages, func, *args):
 @return: True if the user confirms with 'y', False if 'n'."""
 # --- Main Program ---
 def main():
-    print("=== 🔐 Encryption/Decryption Tool ===")
+    print("====== 🔐 Encryption/Decryption Tool ======")
     while True:
-        print("\nInput source:\n1. Message In Shell\n2. File\n3. Batch\n4. Exit")
+        print("\nInput Type:\n1. Message In Shell\n2. File\n3. Batch\n4. Exit\n")
         source_choice = prompt_int("> ", range(1,5))
         if source_choice==4: break
 
@@ -337,7 +338,7 @@ def main():
         for i,m in enumerate(methods,1): print(f"{i}. {m}")
         cipher_choice = prompt_int("> ", range(1,len(methods)+1))
 
-        input_mode = prompt_int("Mode (1=Encrypt,2=Decrypt): ", [1,2])
+        input_mode = prompt_int("\nMode (1.Encrypt,2.Decrypt): ", [1,2])
         results=[]
 
         try:
@@ -363,7 +364,7 @@ def main():
                 results=batch_process(messages,func) if batch_mode else [func(messages[0])]
 
             elif cipher_choice==4:  # AES
-                print("\nPassword options: 1. Manual 2. Saved 3. Save current")
+                print("\nPassword options: 1. Manual 2. Saved 3. Save current\n")
                 choice=input("> ").strip()
                 password=None
                 if choice=="2":
@@ -381,7 +382,7 @@ def main():
                             if decrypted is not None:
                                 results.append(decrypted)
                                 break
-                            print("⚠️ Wrong password or corrupted data. Try again.")
+                            print("Wrong password or corrupted data. Try again.")
                             password=prompt_nonempty("Enter password: ")
                 else:
                     results=batch_process(messages,func,password,True) if batch_mode else [func(messages[0],password,True)]
@@ -399,7 +400,7 @@ def main():
                 results=batch_process(messages,func) if batch_mode else [func(messages[0])]
 
             elif cipher_choice==8:  # XOR
-                print("\nKey options: 1. Manual 2. Saved 3. Save current")
+                print("\nKey options: 1. Manual 2. Saved 3. Save current\n")
                 choice=input("> ").strip()
                 key=None
                 if choice=="2":
@@ -413,9 +414,13 @@ def main():
             # Display results
             label="Encrypted" if input_mode==1 else "Decrypted"
             print(f"\n {label} Result(s):")
+            print("---------------------")
             for idx,res in enumerate(results,1):
                 if batch_mode: print(f"\nMessage {idx}:")
                 print(res)
+                print("\n")
+                print("---------------------")
+
 
             # Save to file
             if input("Save to file? (y/n): ").lower()=='y':
