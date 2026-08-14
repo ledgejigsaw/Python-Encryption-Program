@@ -424,12 +424,165 @@ Potential improvements include:
 * Add automated CI/CD testing through GitHub Actions
 
 ---
+## 🔐 Security Design
+
+The AES encryption option is designed to provide a stronger form of encryption than the classical ciphers included in this project. Rather than using a password directly as an encryption key, the application derives a cryptographic key from the user's password using **PBKDF2-HMAC with SHA-256**.
+
+### Password-Based Key Derivation
+
+Passwords are not directly suitable as encryption keys because users typically choose passwords with lower entropy than randomly generated cryptographic keys.
+
+The application therefore uses:
+
+```text
+Password
+   │
+   ▼
+PBKDF2-HMAC
+   │
+   ├── SHA-256
+   ├── 100,000 iterations
+   └── 16-byte random salt
+   │
+   ▼
+32-byte derived key
+   │
+   ▼
+Fernet key
+```
+
+The implementation generates a new random 16-byte salt when encryption is performed with salt enabled. The salt is stored alongside the encrypted data so that the same key can be derived during decryption.
+
+### Why Use a Salt?
+
+A unique random salt ensures that the same password does not produce the same derived key for every encryption operation.
+
+This helps protect against attacks that rely on precomputed password hashes or keys.
+
+The salt does **not** need to be kept secret. It is stored as part of the encrypted output and extracted during decryption.
+
+### Why Use PBKDF2?
+
+PBKDF2 deliberately makes password-based key derivation more computationally expensive.
+
+This increases the amount of work required to repeatedly test password guesses compared with using a simple hash such as:
+
+```text
+SHA-256(password)
+```
+
+The implementation uses:
+
+```text
+Algorithm:   PBKDF2-HMAC
+Hash:        SHA-256
+Iterations:  100,000
+Key length:  32 bytes
+Salt:        16 random bytes
+```
+
+These parameters are explicitly implemented in the program.
+
+### Why Use Fernet?
+
+The application uses **Fernet** from the Python `cryptography` library rather than implementing the underlying encryption primitives itself.
+
+Fernet provides authenticated symmetric encryption, meaning that the encrypted data can be checked for integrity during decryption.
+
+The application handles failed Fernet authentication by catching `InvalidToken`. If decryption fails, the user is prompted to enter the password again.
+
+### Encryption Process
+
+When encrypting a message with AES/Fernet and salt enabled, the process is:
+
+```text
+                    User Password
+                          │
+                          ▼
+                 Generate Random Salt
+                          │
+                          ▼
+                    PBKDF2-HMAC
+                    SHA-256
+                    100,000 iterations
+                          │
+                          ▼
+                  Derived 32-byte Key
+                          │
+                          ▼
+                     Fernet Key
+                          │
+                          ▼
+                     Encrypt Data
+                          │
+                          ▼
+                 Salt + Ciphertext
+                          │
+                          ▼
+                    Base64 Encoding
+                          │
+                          ▼
+                    Encrypted Output
+```
+
+The program prepends the salt to the encrypted Fernet data before Base64 encoding the result.
+
+### Decryption Process
+
+During decryption, the reverse process is performed:
+
+```text
+                    Encrypted Output
+                          │
+                          ▼
+                   Base64 Decode
+                          │
+                          ▼
+                  Extract 16-byte Salt
+                          │
+                          ▼
+                 PBKDF2-HMAC
+                 User Password + Salt
+                          │
+                          ▼
+                  Derived Encryption Key
+                          │
+                          ▼
+                    Fernet Decryption
+                          │
+                    ┌─────┴─────┐
+                    ▼           ▼
+                 Valid       Invalid
+                    │           │
+                    ▼           ▼
+              Plaintext     Retry Password
+```
+
+The implementation extracts the salt from the first 16 bytes of the decoded data and derives the encryption key using the supplied password and salt.
+
+### Security Limitations
+
+Although the AES/Fernet implementation provides significantly stronger protection than the classical cyphers included in this project, there are several limitations.
+
+The program also contains an alternative mode that derives a key directly using SHA-256:
+
+```python
+key = hashlib.sha256(password.encode()).digest()
+```
+
+This mode does not use a random salt or PBKDF2 and therefore does not provide the same password-hardening properties as the salted implementation.
+
+For security-sensitive use, the salted PBKDF2/Fernet implementation should be preferred.
+
+The project is primarily educational and should not be considered a replacement for a professionally reviewed password-management or encryption system.
+
+---
 
 ## ⚠️ Disclaimer
 
 This project is intended for **educational and demonstration purposes**.
 
-The classical ciphers and encoding methods included in this application should not be used to protect sensitive information. Always use reputable, well-reviewed cryptographic libraries and protocols for production security applications.
+The classical cyphers and encoding methods included in this application should not be used to protect sensitive information. Always use reputable, well-reviewed cryptographic libraries and protocols for production security applications.
 
 ---
 
