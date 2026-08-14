@@ -1,0 +1,440 @@
+# 🔐 Encryption & Decryption Tool
+
+A Python command-line application providing multiple encryption, encoding, and cypher techniques, with support for interactive input, file processing, batch operations, and persistent key management.
+
+## 📖 Overview
+
+This project is an interactive encryption/decryption tool written in Python. It allows users to enter messages directly into the terminal, load messages from files, or process multiple messages in batch mode.
+
+The application supports eight different methods:
+
+* Caesar Cipher
+* Vigenère Cipher
+* Base64
+* AES/Fernet encryption
+* ROT13
+* Morse Code
+* Hexadecimal
+* XOR
+
+The program also provides key/password management for selected cyphers, allowing keys to be saved and retrieved from a local JSON file.
+
+> **Important:** This project is primarily intended for learning and demonstrating cryptography concepts. Not all supported methods provide modern cryptographic security. 
+For protecting sensitive information in real-world applications, use established cryptographic libraries and modern authenticated encryption schemes rather than Caesar, Vigenère, ROT13, Morse, Base64, Hex, or basic XOR.
+
+---
+
+## ✨ Features
+
+### Multiple Encryption Methods
+
+The application supports the following techniques:
+
+| Method     | Type                  | Key Required | Primary Purpose            |
+| ---------- | --------------------- | -----------: | -------------------------- |
+| Caesar     | Substitution cipher   |          Yes | Educational cryptography   |
+| Vigenère   | Polyalphabetic cipher |          Yes | Educational cryptography   |
+| Base64     | Encoding              |           No | Data representation        |
+| AES/Fernet | Symmetric encryption  |          Yes | Stronger encryption        |
+| ROT13      | Substitution cipher   |           No | Demonstration/obfuscation  |
+| Morse      | Encoding              |           No | Text encoding              |
+| Hex        | Encoding              |           No | Data representation        |
+| XOR        | Symmetric operation   |          Yes | Cryptography demonstration |
+
+The available methods are defined directly in the program's main interface.
+
+### 🖥️ Multiple Input Sources
+
+Messages can be supplied in three ways:
+
+1. **Message in Shell**
+
+   * Enter a message directly into the terminal.
+
+2. **File**
+
+   * Specify a text file to read.
+
+3. **Batch**
+
+   * Enter multiple messages and process them together.
+
+The program presents these options when it starts.
+
+### 🔑 Key Management
+
+Keys can be:
+
+* Entered manually
+* Loaded from previously saved keys
+* Saved for future use
+
+Saved keys are stored locally in:
+
+```text
+saved_keys.json
+```
+
+The key-management functionality is implemented using JSON storage.
+
+### 📁 File Input & Output
+
+The program can read plaintext/ciphertext from files and optionally save the resulting encrypted or decrypted output to a file.
+
+For example:
+
+```text
+encrypted_output.txt
+decrypted_output.txt
+```
+
+The output filename can also be customised by the user.
+
+### 📦 Batch Processing
+
+Batch mode allows multiple messages to be processed using the selected encryption/decryption method.
+
+Each message is processed individually, with successful and failed operations reported to the terminal.
+
+---
+
+## 🔐 Cryptographic Implementation
+
+### Caesar Cipher
+
+The Caesar cipher shifts alphabetic characters by a specified number of positions.
+
+The program preserves uppercase and lowercase characters while leaving non-alphabetic characters unchanged.
+
+Example:
+
+```text
+Plaintext:  HELLO
+Shift:      3
+Encrypted:  KHOOR
+```
+
+---
+
+### Vigenère Cypher
+
+The Vigenère implementation uses a repeating alphabetic key to determine the shift applied to each character.
+
+Non-alphabetic characters are preserved and do not advance the key position.
+
+Example:
+
+```text
+Plaintext: HELLO
+Key:       KEY
+```
+
+The same key is required for decryption.
+
+---
+
+### AES/Fernet Encryption
+
+The program uses the `cryptography` library's Fernet implementation for its stronger encryption option.
+
+When salt is enabled, the program:
+
+1. Generates a random 16-byte salt.
+2. Uses PBKDF2-HMAC with SHA-256.
+3. Derives a 32-byte key.
+4. Converts the derived key into a Fernet-compatible key.
+5. Encrypts the plaintext.
+6. Prepends the salt to the encrypted data.
+7. Base64-encodes the resulting data.
+
+The implementation uses:
+
+```text
+PBKDF2-HMAC
+SHA-256
+100,000 iterations
+16-byte random salt
+Fernet
+```
+
+The salt is extracted during decryption and used to derive the same key from the supplied password.
+
+If an incorrect password is supplied, the program detects the failed Fernet authentication and allows the user to retry.
+
+---
+
+### ROT13
+
+ROT13 substitutes each letter with the letter 13 positions away in the alphabet.
+
+The implementation uses Python's `codecs` module:
+
+```python
+codecs.encode(text, 'rot_13')
+```
+
+ROT13 is not secure encryption and should only be considered an encoding/obfuscation technique.
+
+---
+
+### Morse Code
+
+Text can be converted into Morse code using a dictionary containing alphabetic characters, numbers, and spaces.
+
+For example:
+
+```text
+HELLO
+....
+.
+.-..
+.-..
+---
+```
+
+## The reverse dictionary is generated during decryption.
+
+### Hexadecimal
+
+The program can convert text into its hexadecimal representation and convert hexadecimal data back into text.
+
+Example:
+
+```text
+Hello
+```
+
+becomes a hexadecimal representation of its encoded bytes.
+
+This is **encoding rather than encryption** and provides no confidentiality.
+
+---
+
+### XOR
+
+The XOR implementation repeatedly applies a user-provided key across the plaintext.
+
+The same operation is used for both encryption and decryption because XOR is reversible when the same key is applied.
+
+This implementation is intended for demonstrating XOR-based cryptography rather than providing modern secure encryption.
+
+---
+
+## 🛠️ Requirements
+
+The program requires:
+
+* Python 3
+* `cryptography`
+
+Install the required dependency with:
+
+```bash
+pip install cryptography
+```
+
+The program imports the following cryptography components:
+
+```python
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import hashes
+```
+
+---
+
+## 🚀 Installation
+
+Clone the repository:
+
+```bash
+git clone <your-repository-url>
+```
+
+Navigate into the project directory:
+
+```bash
+cd <project-directory>
+```
+
+Install the dependency:
+
+```bash
+pip install cryptography
+```
+
+Run the program:
+
+```bash
+python3 encryption_program.py
+```
+
+---
+
+## 💻 Usage
+
+When launched, the program displays:
+
+```text
+=== 🔐 Encryption/Decryption Tool ===
+
+Input source:
+1. Message In Shell
+2. File
+3. Batch
+4. Exit
+```
+
+Select the required input source and then select the encryption/decryption method.
+
+The program subsequently asks whether the operation should be:
+
+```text
+1 = Encrypt
+2 = Decrypt
+```
+
+### Example Workflow
+
+```text
+1. Start the application
+2. Select "Message In Shell"
+3. Enter a message
+4. Select an encryption method
+5. Select Encrypt
+6. Provide a key/password if required
+7. View the encrypted result
+8. Optionally save the result to a file
+```
+
+---
+
+## 📂 Project Structure
+
+A typical repository structure could look like:
+
+```text
+encryption-tool/
+│
+├── encryption_program.py
+├── README.md
+├── saved_keys.json
+└── .gitignore
+```
+
+### `encryption_program.py`
+
+Contains the main application, encryption/decryption functions, key management, file handling, batch processing, and command-line interface.
+
+### `saved_keys.json`
+
+Stores keys saved through the application's key-management functionality.
+
+**Do not commit real passwords or sensitive keys to a public Git repository.**
+
+---
+
+## 🔒 Security Considerations
+
+This project deliberately implements several different cryptographic and encoding techniques for educational purposes.
+
+However, they do not all provide the same level of security.
+
+### Suitable for learning
+
+The following are useful for demonstrating historical or fundamental cryptography concepts:
+
+* Caesar
+* Vigenère
+* ROT13
+* Morse
+* XOR
+
+### Encoding rather than encryption
+
+The following do **not** provide confidentiality:
+
+* Base64
+* Hexadecimal
+* Morse Code
+
+Anyone who knows the encoding can reverse it.
+
+### Stronger encryption option
+
+The AES option uses the `cryptography` library's Fernet implementation with password-derived keys and PBKDF2 when salt is enabled.
+
+For real-world security applications, cryptographic design should generally rely on well-established protocols and libraries rather than implementing custom encryption schemes.
+
+---
+
+## 🧪 Error Handling
+
+The application includes input validation and error handling.
+
+Examples include:
+
+* Invalid numeric menu selections
+* Empty input
+* Invalid file paths
+* Failed encryption/decryption operations
+* Incorrect AES passwords
+* Batch-processing errors
+
+## The program also catches unexpected exceptions in the main processing loop and reports them to the user.
+
+## 🎯 Project Objectives
+
+This project demonstrates practical understanding of:
+
+* Python programming
+* Cryptography concepts
+* Symmetric encryption
+* Password-based key derivation
+* PBKDF2
+* SHA-256
+* Fernet
+* Base64 encoding
+* Hexadecimal encoding
+* XOR operations
+* File handling
+* JSON data storage
+* Exception handling
+* Input validation
+* Batch processing
+* Command-line interfaces
+
+---
+
+## 🔮 Possible Future Improvements
+
+Potential improvements include:
+
+* Add unit tests using `pytest`
+* Add automated test coverage
+* Add stronger password validation
+* Add secure deletion of sensitive key material
+* Improve key storage security
+* Add command-line arguments using `argparse`
+* Add structured logging
+* Add configuration options
+* Add support for additional authenticated encryption schemes
+* Improve input validation for cipher-specific keys
+* Add a graphical user interface
+* Add automated CI/CD testing through GitHub Actions
+
+---
+
+## ⚠️ Disclaimer
+
+This project is intended for **educational and demonstration purposes**.
+
+The classical ciphers and encoding methods included in this application should not be used to protect sensitive information. Always use reputable, well-reviewed cryptographic libraries and protocols for production security applications.
+
+---
+
+## 👤 Author
+
+**Ben**
+
+This project was developed as a practical Python and cybersecurity project exploring encryption, encoding, key management, file processing, and command-line application development.
